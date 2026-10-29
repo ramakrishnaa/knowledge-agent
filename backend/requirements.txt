@@ -1,0 +1,20 @@
+openai>=1.50
+fastapi>=0.115
+uvicorn[standard]>=0.32
+pydantic>=2.9
+python-dotenv>=1.0
+python-multipart>=0.0.20
+
+# Multi-agent orchestration
+langgraph>=1.0
+
+# RAG: vector store, chunking, PDF text
+chromadb>=1.0
+langchain-text-splitters>=1.0
+pypdf>=5.0
+
+# Tracing to Arize AX / Arize Phoenix
+arize-otel>=0.10
+arize-phoenix-otel>=0.13
+openinference-instrumentation-langchain>=0.1.50
+openinference-instrumentation-openai>=0.1.30

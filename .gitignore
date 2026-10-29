@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+.env
+backend/data/
+node_modules/
+dist/
+.venv-phoenix/
+.angular/

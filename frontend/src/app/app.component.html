@@ -1,0 +1,63 @@
+<div class="layout">
+  <aside class="sidebar">
+    <h1>Knowledge Agent</h1>
+    <button class="secondary" (click)="newChat()">+ New chat</button>
+    <h2>Knowledge base</h2>
+    <app-knowledge-base />
+    <h2>Agents</h2>
+    @for (a of agents(); track a.name) {
+      <details class="agent-card">
+        <summary>
+          <strong>{{ a.title }}</strong>
+          <span>{{ a.description }}</span>
+        </summary>
+        <ul class="tool-list">
+          @for (t of a.tools; track t.name) {
+            <li [title]="t.description">
+              <code>{{ t.name }}</code>
+              <span>{{ t.description }}</span>
+            </li>
+          }
+        </ul>
+      </details>
+    }
+  </aside>
+
+  <main class="chat">
+    <div class="messages">
+      @if (messages().length === 0) {
+        <div class="empty">
+          <p>Feed your data in the sidebar (upload files or paste text), then ask questions about it. A supervisor hands each question to the right agent: one searches for specific facts, one reads whole documents to summarise and compare.</p>
+          <div class="examples">
+            @for (ex of examples; track ex) {
+              <button class="secondary" (click)="send(ex)">{{ ex }}</button>
+            }
+          </div>
+        </div>
+      }
+      @for (m of messages(); track $index) {
+        @if (m.role === 'user') {
+          <div class="message user">{{ m.text }}</div>
+        } @else {
+          <app-assistant-message [message]="m" />
+        }
+      }
+      <div #bottom></div>
+    </div>
+
+    <form class="composer" (submit)="$event.preventDefault(); send(input())">
+      <textarea
+        [value]="input()"
+        placeholder="Message the agent…"
+        rows="2"
+        (input)="input.set($any($event.target).value)"
+        (keydown)="onKeydown($event)"
+      ></textarea>
+      @if (busy()) {
+        <button type="button" (click)="stop()">Stop</button>
+      } @else {
+        <button type="submit" [disabled]="!input().trim()">Send</button>
+      }
+    </form>
+  </main>
+</div>
