@@ -10,6 +10,7 @@ RETRIEVER span, so Arize / Phoenix show which passages were retrieved.
 
 import io
 import json
+import os
 import threading
 from functools import cache
 from pathlib import Path
@@ -26,8 +27,10 @@ from pypdf import PdfReader
 from .tools import tool
 
 _BACKEND_DIR = Path(__file__).resolve().parent.parent
-DATA_DIR = _BACKEND_DIR / "data"
+DATA_DIR = Path(os.getenv("DATA_DIR") or _BACKEND_DIR / "data")
 SEED_DIR = _BACKEND_DIR / "knowledge"
+# The container image bakes the model in at build time, outside the (mountable) data directory.
+MODEL_DIR = Path(os.getenv("EMBEDDING_MODEL_DIR") or DATA_DIR / "onnx_models")
 SUPPORTED_EXTENSIONS = {".txt", ".md", ".pdf", ".csv", ".json"}
 
 _splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=150)
@@ -37,7 +40,7 @@ _tracer = trace.get_tracer(__name__)
 
 class _Embedder(ONNXMiniLM_L6_V2):
     # Keep the ~80 MB model with the app's data instead of the user's home directory.
-    DOWNLOAD_PATH = DATA_DIR / "onnx_models" / ONNXMiniLM_L6_V2.MODEL_NAME
+    DOWNLOAD_PATH = MODEL_DIR / ONNXMiniLM_L6_V2.MODEL_NAME
 
 
 @cache

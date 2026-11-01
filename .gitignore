@@ -6,3 +6,8 @@ node_modules/
 dist/
 .venv-phoenix/
 .angular/
+.terraform/
+*.tfstate
+*.tfstate.*
+terraform.tfvars
+tfplan

@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import os
 import uuid
 from contextlib import asynccontextmanager
 
@@ -43,7 +44,8 @@ async def lifespan(_: FastAPI):
 app = FastAPI(title="Knowledge Agent", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    # Comma-separated; only needed when the UI calls the API from a different origin.
+    allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(","),
     allow_methods=["*"],
     allow_headers=["*"],
 )

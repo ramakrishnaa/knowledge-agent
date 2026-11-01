@@ -1,0 +1,8 @@
+.venv/
+.venv-phoenix/
+__pycache__/
+*.pyc
+.env
+data/
+Dockerfile
+.dockerignore

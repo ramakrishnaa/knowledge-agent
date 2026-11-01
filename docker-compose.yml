@@ -1,0 +1,21 @@
+# Run both containers locally: docker compose up --build, then open http://localhost:8080
+services:
+  backend:
+    build: ./backend
+    env_file: ./backend/.env
+    volumes:
+      - backend-data:/data
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build: ./frontend
+    environment:
+      BACKEND_URL: http://backend:8000
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
+volumes:
+  backend-data:

@@ -1,0 +1,35 @@
+#!/bin/bash
+# First boot: install Docker and a deploy script, then start the backend container.
+set -euo pipefail
+
+dnf install -y docker
+systemctl enable --now docker
+mkdir -p /opt/knowledge-agent/data
+chown 10001:10001 /opt/knowledge-agent/data  # the container runs as uid 10001
+
+# Pulls the image and (re)starts the container with the .env stored in SSM.
+# scripts/deploy-backend runs it again through SSM after each image push.
+cat > /usr/local/bin/knowledge-agent-deploy <<'EOF'
+#!/bin/bash
+set -euo pipefail
+REGION="${region}"
+IMAGE="${image}"
+REGISTRY="$${IMAGE%%/*}"
+
+aws ssm get-parameter --region "$REGION" --name "${env_parameter}" --with-decryption \
+  --query Parameter.Value --output text > /etc/knowledge-agent.env
+chmod 600 /etc/knowledge-agent.env
+
+aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "$REGISTRY"
+docker pull "$IMAGE"
+docker rm -f knowledge-agent-backend 2>/dev/null || true
+docker run -d --name knowledge-agent-backend --restart unless-stopped \
+  -p 8000:8000 --env-file /etc/knowledge-agent.env \
+  -v /opt/knowledge-agent/data:/data "$IMAGE"
+docker image prune -f
+EOF
+chmod 755 /usr/local/bin/knowledge-agent-deploy
+
+# The image may not be pushed yet: keep retrying in the background until it is.
+systemd-run --unit=knowledge-agent-first-deploy /bin/bash -c \
+  'until /usr/local/bin/knowledge-agent-deploy; do sleep 30; done'
